@@ -61,6 +61,7 @@
   "proxy": "http://localhost:9090/",
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/runtime": "^7.26.10",
     "@playwright/test": "^1.50.1",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.15",
@@ -97,7 +98,8 @@
     "ws": "^8.17.1",
     "rollup": "^4.24.0",
     "cookie": "^0.7.2",
-    "jspdf": "^3.0.0"
+    "jspdf": "^3.0.0",
+    "@babel/runtime": "^7.26.10"
   },
   "main": "index.js",
   "packageManager": "yarn@4.4.0"
