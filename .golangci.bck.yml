@@ -1,0 +1,55 @@
+linters-settings:
+  misspell:
+    locale: US
+  testifylint:
+    disable:
+      - go-require
+  staticcheck:
+    checks:
+      [
+        "all",
+        "-ST1005",
+        "-ST1000",
+        "-SA4000",
+        "-SA9004",
+        "-SA1019",
+        "-SA1008",
+        "-U1000",
+        "-ST1016",
+      ]
+  goheader:
+    values:
+      regexp:
+        copyright-holder: Copyright \(c\) (20\d\d\-20\d\d)|2021|({{year}})
+    template-path: .license.tmpl
+
+linters:
+  disable-all: true
+  enable:
+    - goimports
+    - misspell
+    - govet
+    - revive
+    - ineffassign
+    - gosimple
+    - gomodguard
+    - gofmt
+    - unused
+    - staticcheck
+    - unconvert
+    - gocritic
+    - gofumpt
+    - durationcheck
+
+issues:
+  exclude-use-default: false
+  exclude:
+    - should have a package comment
+    # TODO(y4m4): Remove once all exported ident. have comments!
+    - comment on exported function
+    - comment on exported type
+    - should have comment
+    - use leading k in Go names
+    - comment on exported const
+  exclude-dirs:
+    - api/operations

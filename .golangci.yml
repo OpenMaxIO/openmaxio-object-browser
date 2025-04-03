@@ -1,46 +1,73 @@
-linters-settings:
-  golint:
-    min-confidence: 0
-
-  misspell:
-    locale: US
-
-  goheader:
-    values:
-      regexp:
-        copyright-holder: Copyright \(c\) (20\d\d\-20\d\d)|2021|({{year}})
-    template-path: .license.tmpl
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    - goimports
-    - misspell
-    - govet
-    - revive
-    - ineffassign
-    - gosimple
+    - durationcheck
+    - gocritic
     - gomodguard
-    - gofmt
-    - unused
+    - govet
+    - ineffassign
+    - misspell
+    - revive
     - staticcheck
     - unconvert
-    - gocritic
+    - unused
+  settings:
+    goheader:
+      values:
+        regexp:
+          copyright-holder: Copyright \(c\) (20\d\d\-20\d\d)|2021|({{year}})
+      template-path: .license.tmpl
+    misspell:
+      locale: US
+    staticcheck:
+      checks:
+        - all
+        - -QF1001
+        - -QF1008
+        - -QF1010
+        - -QF1012
+        - -SA1008
+        - -SA1019
+        - -SA4000
+        - -SA9004
+        - -ST1000
+        - -ST1005
+        - -ST1016
+        - -ST1019
+        - -U1000
+    testifylint:
+      disable:
+        - go-require
+  exclusions:
+    generated: lax
+    rules:
+      - path: (.+)\.go$
+        text: should have a package comment
+      - path: (.+)\.go$
+        text: comment on exported function
+      - path: (.+)\.go$
+        text: comment on exported type
+      - path: (.+)\.go$
+        text: should have comment
+      - path: (.+)\.go$
+        text: use leading k in Go names
+      - path: (.+)\.go$
+        text: comment on exported const
+    paths:
+      - api/operations
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
     - gofumpt
-    - durationcheck
-
-service:
-  golangci-lint-version: 1.43.0 # use the fixed version to not introduce new linters unexpectedly
-
-issues:
-  exclude-use-default: false
-  exclude:
-    - should have a package comment
-    # TODO(y4m4): Remove once all exported ident. have comments!
-    - comment on exported function
-    - comment on exported type
-    - should have comment
-    - use leading k in Go names
-    - comment on exported const
-  exclude-dirs:
-    - api/operations
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - api/operations
+      - third_party$
+      - builtin$
+      - examples$

@@ -406,7 +406,7 @@ func applyDynamicConfigForSubSys(ctx context.Context, transport *http.Transport,
 
 		err = UpdateAuditWebhookTargets(loggerCfg)
 		if err != nil {
-			LogIf(ctx, fmt.Errorf("Unable to update audit webhook targets: %w", err))
+			LogIf(ctx, fmt.Errorf("unable to update audit webhook targets: %w", err))
 			return err
 		}
 	}
