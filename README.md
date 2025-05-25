@@ -1,4 +1,21 @@
-# MinIO Console
+# OpenMaxIO Console
+
+This is a fork of MinIO Console. 
+This is a communitty driven project and is not affiliated with MinIO, Inc. 
+
+OpenMaxIO is a community-maintained fork of MinIO, created in response to the removal of key features from the MinIO open-source distribution. Our goal is simple:
+to preserve a fully open, fully functional, and production-grade object storage server that stays true to the original spirit of minimalism, performance, and freedom.
+
+MinIO once stood for minimal, high-performance, open-source object storage. But recent changes have shifted core capabilities behind a commercial license. We believe the open-source ecosystem deserves better.
+
+OpenMaxIO brings back what was removed and keeps it open for good.
+
+
+## Contributing
+
+We welcome contributions to OpenMaxIO Console. These are still early days, so please be patient as we work to restore and enhance the features you love.
+
+
 
 ![build](https://github.com/minio/console/workflows/Go/badge.svg) ![license](https://img.shields.io/badge/license-AGPL%20V3-blue)
 
