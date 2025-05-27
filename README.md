@@ -1,3 +1,21 @@
+# To build you own OpenMaxIO UI: 
+
+```bash
+git clone https://github.com/OpenMaxIO/openmaxio-object-browser 
+cd openmaxio-object-browser/web-app 
+yarn install 
+yarn build 
+cd ../
+make console 
+./console server 
+```
+
+# To connect OpenMaxIO UI to an existing Minio server run this command (replace 1.2.3.4:9000 to your address)
+
+```bash
+CONSOLE_MINIO_SERVER=http://1.2.3.4:9000 ./console server 
+```
+
 # OpenMaxIO Console
 
 This is a fork of MinIO Console. 
@@ -232,3 +250,4 @@ The detailed logging also includes all request and response headers (if any).
 # Contribute to console Project
 
 Please follow console [Contributor's Guide](https://github.com/minio/console/blob/master/CONTRIBUTING.md)
+
