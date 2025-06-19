@@ -2,7 +2,11 @@
 
 ```bash
 git clone https://github.com/OpenMaxIO/openmaxio-object-browser 
-cd openmaxio-object-browser/web-app 
+cd openmaxio-object-browser/web-app
+
+sudo apt update
+sudo apt install golang-go -y
+
 yarn install 
 yarn build 
 cd ../
