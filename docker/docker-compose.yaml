@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  openmaxio:
+    build:
+      context: .
+      dockerfile: Dockerfile  
+    ports:
+      - "9090:9090"
+    environment:
+      - CONSOLE_MINIO_SERVER=http[s]://your_minio_instance:9000
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs/minio.crt:/cert.crt:ro
+      - ./certs/minio.key:/cert.key:ro
+    depends_on:
+      - openmaxio
+    restart: unless-stopped
