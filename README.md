@@ -11,6 +11,9 @@ make console
 ./console server 
 ```
 
+# Run OpenMAXIO UI in docker:
+ [Docker Instructions](docker/).
+
 # To connect OpenMaxIO UI to an existing Minio server run this command (replace 1.2.3.4:9000 to your address)
 
 ```bash
