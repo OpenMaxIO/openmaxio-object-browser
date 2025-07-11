@@ -36,9 +36,11 @@ RUN . /root/.nvm/nvm.sh ; yarn build
 WORKDIR /build/openmaxio-object-browser
 RUN export PATH=$PATH:/usr/local/go/bin ; make console
 
+FROM scratch
+COPY --from=0 /build/openmaxio-object-browser/console /bin/console
+
 
 
 expose 9090
 
-
-CMD [ "/build/openmaxio-object-browser/console", "server" ]
+CMD [ "/bin/console", "server" ]
