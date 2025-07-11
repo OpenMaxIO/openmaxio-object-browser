@@ -26,7 +26,3 @@ cd docker
 docker compose up -d 
 
 ```
-
-### Notes:
-This is not the best aproach, I am using a farily "bloated" image here and not cleaning up the build tools afterwards  
-I am hoping this can be a jumping-off point for someone to make a better version of this
