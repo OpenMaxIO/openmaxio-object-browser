@@ -20,6 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Build
+build/
+
 # Yarn (see https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored)
 .yarn/*
 !.yarn/cache
