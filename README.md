@@ -1,22 +1,3 @@
-# To build you own OpenMaxIO UI: 
-
-```bash
-git clone https://github.com/OpenMaxIO/openmaxio-object-browser 
-cd openmaxio-object-browser/web-app
-git checkout v1.7.6
-yarn install 
-yarn build 
-cd ../
-make console 
-./console server 
-```
-
-# To connect OpenMaxIO UI to an existing Minio server run this command (replace 1.2.3.4:9000 to your address)
-
-```bash
-CONSOLE_MINIO_SERVER=http://1.2.3.4:9000 ./console server 
-```
-
 # OpenMaxIO Console
 
 This is a fork of MinIO Console. 
@@ -28,6 +9,27 @@ to preserve a fully open, fully functional, and production-grade object storage 
 MinIO once stood for minimal, high-performance, open-source object storage. But recent changes have shifted core capabilities behind a commercial license. We believe the open-source ecosystem deserves better.
 
 OpenMaxIO brings back what was removed and keeps it open for good.
+
+## To build you own OpenMaxIO UI: 
+
+Install NVM: https://github.com/nvm-sh/nvm/blob/master/README.md#installing-and-updating
+Note the last version published by minio before removing functionality was v1.7.6.
+
+```bash
+git clone https://github.com/OpenMaxIO/openmaxio-object-browser 
+cd openmaxio-object-browser/
+git checkout <version>
+make assets console 
+```
+
+Optionally also run `make container` to build a container.
+You cen specify the `CTR` variable to a different container runtime command to use. For example `CTR=podman make container`
+
+## To connect OpenMaxIO UI to an existing Minio server run this command (replace 1.2.3.4:9000 to your address)
+
+```bash
+CONSOLE_MINIO_SERVER=http://1.2.3.4:9000 ./console server 
+```
 
 
 ## Contributing

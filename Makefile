@@ -7,13 +7,17 @@ TAG ?= "minio/console:$(BUILD_VERSION)-dev"
 MINIO_VERSION ?= "quay.io/minio/minio:latest"
 TARGET_BUCKET ?= "target"
 NODE_VERSION := $(shell cat .nvmrc)
+CTR ?= docker
 
 default: console
 
 .PHONY: console
 console:
-	@echo "Building Console binary to './console'"
+	@echo "Building Console binary to './ls'"
 	@(GO111MODULE=on CGO_ENABLED=0 go build -trimpath --tags=kqueue --ldflags "-s -w" -o console ./cmd/console)
+
+container: console
+	$(CTR) build -t openmaxio-object-browser:${BUILD_VERSION} .
 
 getdeps:
 	@mkdir -p ${GOPATH}/bin
@@ -63,38 +67,38 @@ swagger-console:
 
 
 assets:
-	@(if [ -f "${NVM_DIR}/nvm.sh" ]; then \. "${NVM_DIR}/nvm.sh" && nvm install && nvm use && npm install -g yarn ; fi &&\
-	  cd web-app; corepack enable; yarn install --prefer-offline; make build-static; yarn prettier --write . --log-level warn; cd ..)
+	@(if [ -f "${NVM_DIR}/nvm.sh" ]; then \. "${NVM_DIR}/nvm.sh"; nvm install; nvm use; npm install -g yarn ; fi &&\
+	  cd web-app; corepack enable; yarn install; make build-static; yarn prettier --write . --log-level warn; cd ..)
 
 test-integration:
-	@(docker stop pgsqlcontainer || true)
-	@(docker stop minio || true)
-	@(docker stop minio2 || true)
-	@(docker network rm mynet123 || true)
-	@echo "create docker network to communicate containers MinIO & PostgreSQL"
-	@(docker network create --subnet=173.18.0.0/29 mynet123)
-	@echo "docker run with MinIO Version below:"
+	@($(CTR) stop pgsqlcontainer || true)
+	@($(CTR) stop minio || true)
+	@($(CTR) stop minio2 || true)
+	@($(CTR) network rm mynet123 || true)
+	@echo "create container network to communicate containers MinIO & PostgreSQL"
+	@($(CTR) network create --subnet=173.18.0.0/29 mynet123)
+	@echo "Container run with MinIO Version below:"
 	@echo $(MINIO_VERSION)
 	@echo "MinIO 1"
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 --net=mynet123 -d --name minio --rm -p 9000:9000 -p 9091:9091 -e MINIO_KMS_SECRET_KEY=my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw= $(MINIO_VERSION) server /data{1...4} --console-address ':9091' && sleep 5)
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 --net=mynet123 -d --name minio --rm -p 9000:9000 -p 9091:9091 -e MINIO_KMS_SECRET_KEY=my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw= $(MINIO_VERSION) server /data{1...4} --console-address ':9091' && sleep 5)
 	@echo "MinIO 2"
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 --net=mynet123 -d --name minio2 --rm -p 9001:9001 -p 9092:9092 -e MINIO_KMS_SECRET_KEY=my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw= $(MINIO_VERSION) server /data{1...4} --address ':9001' --console-address ':9092' && sleep 5)
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 --net=mynet123 -d --name minio2 --rm -p 9001:9001 -p 9092:9092 -e MINIO_KMS_SECRET_KEY=my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw= $(MINIO_VERSION) server /data{1...4} --address ':9001' --console-address ':9092' && sleep 5)
 	@echo "Postgres"
-	@(docker run --net=mynet123 --ip=173.18.0.4 --name pgsqlcontainer --rm -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres && sleep 5)
+	@($(CTR) run --net=mynet123 --ip=173.18.0.4 --name pgsqlcontainer --rm -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres && sleep 5)
 	@echo "execute test and get coverage for test-integration:"
 	@(cd integration && go test -coverpkg=../api -c -tags testrunmain . && mkdir -p coverage &&  ./integration.test -test.v -test.run "^Test*" -test.coverprofile=coverage/system.out)
-	@(docker stop pgsqlcontainer)
-	@(docker stop minio)
-	@(docker stop minio2)
-	@(docker network rm mynet123)
+	@($(CTR) stop pgsqlcontainer)
+	@($(CTR) stop minio)
+	@($(CTR) stop minio2)
+	@($(CTR) network rm mynet123)
 
 test-replication:
-	@(docker stop minio || true)
-	@(docker stop minio1 || true)
-	@(docker stop minio2 || true)
-	@(docker network rm mynet123 || true)
-	@(docker network create mynet123)
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 \
+	@($(CTR) stop minio || true)
+	@($(CTR) stop minio1 || true)
+	@($(CTR) stop minio2 || true)
+	@($(CTR) network rm mynet123 || true)
+	@($(CTR) network create mynet123)
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 \
 	  --net=mynet123 -d \
 	  --name minio \
 	  --rm \
@@ -106,7 +110,7 @@ test-replication:
 	  $(MINIO_VERSION) server /data{1...4} \
 	  --address :9000 \
 	  --console-address :6000)
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 \
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 \
 	  --net=mynet123 -d \
 	  --name minio1 \
 	  --rm \
@@ -118,7 +122,7 @@ test-replication:
 	  $(MINIO_VERSION) server /data{1...4} \
 	  --address :9001 \
 	  --console-address :6001)
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 \
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 \
 	  --net=mynet123 -d \
 	  --name minio2 \
 	  --rm \
@@ -131,16 +135,16 @@ test-replication:
 	  --address :9002 \
 	  --console-address :6002)
 	@(cd replication && go test -coverpkg=../api -c -tags testrunmain . && mkdir -p coverage && ./replication.test -test.v -test.run "^Test*" -test.coverprofile=coverage/replication.out)
-	@(docker stop minio || true)
-	@(docker stop minio1 || true)
-	@(docker stop minio2 || true)
-	@(docker network rm mynet123 || true)
+	@($(CTR) stop minio || true)
+	@($(CTR) stop minio1 || true)
+	@($(CTR) stop minio2 || true)
+	@($(CTR) network rm mynet123 || true)
 
 test-sso-integration:
 	@echo "create the network in bridge mode to communicate all containers"
-	@(docker network create my-net)
+	@($(CTR) network create my-net)
 	@echo "run openldap container using MinIO Image: quay.io/minio/openldap:latest"
-	@(docker run \
+	@($(CTR) run \
 		-e LDAP_ORGANIZATION="MinIO Inc" \
 		-e LDAP_DOMAIN="min.io" \
 		-e LDAP_ADMIN_PASSWORD="admin" \
@@ -150,7 +154,7 @@ test-sso-integration:
 		--name openldap \
 		--detach quay.io/minio/openldap:latest)
 	@echo "Run Dex container using MinIO Image: quay.io/minio/dex:latest"
-	@(docker run \
+	@($(CTR) run \
 		-e DEX_ISSUER=http://dex:5556/dex \
 		-e DEX_CLIENT_REDIRECT_URI=http://127.0.0.1:9090/oauth_callback \
 		-e DEX_LDAP_SERVER=openldap:389 \
@@ -159,7 +163,7 @@ test-sso-integration:
 		--name dex \
 		--detach quay.io/minio/dex:latest)
 	@echo "running minio server"
-	@(docker run \
+	@($(CTR) run \
 	-v /data1 -v /data2 -v /data3 -v /data4 \
 	--network my-net \
 	-d \
@@ -175,10 +179,10 @@ test-sso-integration:
 	-e MINIO_ROOT_USER=minio \
 	-e MINIO_ROOT_PASSWORD=minio123 $(MINIO_VERSION) server /data{1...4} --address :9000 --console-address :9001)
 	@echo "run mc commands to set the policy"
-	@(docker run --name minio-client --network my-net -dit --entrypoint=/bin/sh minio/mc)
-	@(docker exec minio-client mc alias set myminio/ http://minio:9000 minio minio123)
+	@($(CTR) run --name minio-client --network my-net -dit --entrypoint=/bin/sh minio/mc)
+	@($(CTR) exec minio-client mc alias set myminio/ http://minio:9000 minio minio123)
 	@echo "adding policy to Dillon Harper to be able to login:"
-	@(cd sso-integration && docker cp allaccess.json minio-client:/ && docker exec minio-client mc admin policy create myminio "Dillon Harper" allaccess.json)
+	@(cd sso-integration && $(CTR) cp allaccess.json minio-client:/ && $(CTR) exec minio-client mc admin policy create myminio "Dillon Harper" allaccess.json)
 	@echo "starting bash script"
 	@(env bash $(PWD)/sso-integration/set-sso.sh)
 	@echo "add python module"
@@ -187,53 +191,53 @@ test-sso-integration:
 	@(cd sso-integration && go test -coverpkg=../api -c -tags testrunmain . && mkdir -p coverage && ./sso-integration.test -test.v -test.run "^Test*" -test.coverprofile=coverage/sso-system.out)
 
 test-permissions-1:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-1/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-permissions-2:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-2/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-permissions-3:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-3/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-permissions-4:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-4/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-permissions-5:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-5/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-permissions-6:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 	@(env bash $(PWD)/web-app/tests/scripts/permissions.sh "web-app/tests/permissions-6/")
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 test-apply-permissions:
 	@(env bash $(PWD)/web-app/tests/scripts/initialize-env.sh)
 
 test-start-docker-minio:
-	@(docker run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
+	@($(CTR) run -v /data1 -v /data2 -v /data3 -v /data4 -d --name minio --rm -p 9000:9000 quay.io/minio/minio:latest server /data{1...4})
 
 initialize-permissions: test-start-docker-minio test-apply-permissions
 	@echo "Done initializing permissions test"
 
 cleanup-permissions:
 	@(env bash $(PWD)/web-app/tests/scripts/cleanup-env.sh)
-	@(docker stop minio)
+	@($(CTR) stop minio)
 
 initialize-docker-network:
-	@(docker network create test-network)
+	@($(CTR) network create test-network)
 
 test-start-docker-minio-w-redirect-url: initialize-docker-network
-	@(docker run \
+	@($(CTR) run \
     -e MINIO_BROWSER_REDIRECT_URL='http://localhost:8000/console/subpath/' \
     -e MINIO_SERVER_URL='http://localhost:9000' \
     -v /data1 -v /data2 -v /data3 -v /data4 \
@@ -241,7 +245,7 @@ test-start-docker-minio-w-redirect-url: initialize-docker-network
     quay.io/minio/minio:latest server /data{1...4})
 
 test-start-docker-nginx-w-subpath:
-	@(docker run \
+	@($(CTR) run \
 	--network host \
 	-d --rm \
 	--add-host=host.docker.internal:host-gateway \
@@ -251,7 +255,7 @@ test-start-docker-nginx-w-subpath:
 test-initialize-minio-nginx: test-start-docker-minio-w-redirect-url test-start-docker-nginx-w-subpath
 
 cleanup-minio-nginx:
-	@(docker stop minio test-nginx & docker network rm test-network)
+	@($(CTR) stop minio test-nginx & $(CTR) network rm test-network)
 
 # https://stackoverflow.com/questions/19200235/golang-tests-in-sub-directory
 # Note: go test ./... will run tests on the current folder and all subfolders.
@@ -278,7 +282,7 @@ clean:
 	@rm -vf console
 
 docker:
-	@docker buildx build --output=type=docker --platform linux/amd64 -t $(TAG) --build-arg build_version=$(BUILD_VERSION) --build-arg build_time='$(BUILD_TIME)' --build-arg NODE_VERSION='$(NODE_VERSION)' .
+	@$(CTR) buildx build --output=type=docker --platform linux/amd64 -t $(TAG) --build-arg build_version=$(BUILD_VERSION) --build-arg build_time='$(BUILD_TIME)' --build-arg NODE_VERSION='$(NODE_VERSION)' .
 
 release: swagger-gen
 	@echo "Generating Release: $(RELEASE)"
