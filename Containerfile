@@ -1,15 +1,16 @@
-ARG OPENMAXIO_TAG=v1.7.6
+ARG OPENMAXIO_TAG="v1.7.6"
+ARG NODE_VERSION="18"
+ARG GOLANG_VERSION="1.24"
 
 FROM alpine/git:latest as git
 
 WORKDIR /app
 
-RUN git clone -b "${OPENMAXIO_TAG}" --single-branch --depth 1 https://github.com/OpenMaxIO/openmaxio-object-browser \
-    && pwd \
-    && ls -lah ./openmaxio-object-browser
+ENV GIT_BRANCH="${OPENMAXIO_TAG}"
+RUN git clone -b "${GIT_BRANCH}" --single-branch --depth 1 https://github.com/OpenMaxIO/openmaxio-object-browser
 
 ########################################################################################################################
-FROM node:18 as uilayer
+FROM node:${NODE_VERSION} as uilayer
 
 WORKDIR /app
 
@@ -19,7 +20,7 @@ RUN corepack enable && corepack prepare
 RUN yarn install && yarn build
 
 ########################################################################################################################
-FROM golang:1.24 as golayer
+FROM golang:${GOLANG_VERSION} as golayer
 
 WORKDIR /go/src/github.com/minio/console/
 
