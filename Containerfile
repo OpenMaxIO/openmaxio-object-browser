@@ -1,8 +1,8 @@
-ARG OPENMAXIO_TAG="v1.7.6"
 ARG NODE_VERSION="18"
 ARG GOLANG_VERSION="1.24"
 
 FROM alpine/git:latest as git
+ARG OPENMAXIO_TAG="v1.7.6"
 
 WORKDIR /app
 
