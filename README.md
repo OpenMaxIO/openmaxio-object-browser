@@ -3,7 +3,6 @@
 ```bash
 git clone https://github.com/OpenMaxIO/openmaxio-object-browser 
 cd openmaxio-object-browser/web-app
-git checkout v1.7.6
 yarn install 
 yarn build 
 cd ../
